@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Installer Nuvio</title>
+<style>
+  body { background: #111; color: #eee; font: 28px/1.4 sans-serif; margin: 40px 60px; }
+  h1 { font-size: 40px; margin: 0 0 20px; }
+  .ok { color: #5d5; } .no { color: #e66; } .dim { color: #999; font-size: 22px; }
+  button { font-size: 32px; padding: 16px 36px; margin: 20px 20px 0 0; border-radius: 12px; border: 4px solid #555; background: #3355ff; color: #fff; }
+  button.alt { background: #444; }
+  button:focus { border-color: #ffd400; }
+  #log { margin-top: 24px; font-size: 30px; }
+</style>
+</head>
+<body>
+<h1>Installer Nuvio sur la TV</h1>
+<div id="status"></div>
+<button id="install" style="display:none">Installer Nuvio</button>
+<button id="remove" class="alt" style="display:none">Retirer Nuvio</button>
+<button id="restore" class="alt" style="display:none">Restaurer la sauvegarde</button>
+<div id="log"></div>
+<script>
+  // Ajoute Nuvio à la liste des apps web de VIDAA (websdk/Appinfo.json), comme vidaa-edge.
+  // Le fichier d'origine est sauvegardé avant toute écriture.
+  var BASE = "https://alexandre07310-alt.github.io/nuvio-web/";
+  var PATH = "websdk/Appinfo.json";
+  var BACKUP = "websdk/Appinfo.nuvio-backup.json";
+  var MODE = 6;
+  var ID = "nuvioweb";
+  var req = window.HiUtils_createRequest;
+  var status = document.getElementById("status");
+  var log = document.getElementById("log");
+
+  function say(html) { log.innerHTML = html; }
+
+  function read(path) {
+    var r = req("fileRead", { path: path, mode: MODE });
+    return r && r.ret ? r.msg : null;
+  }
+
+  function write(path, text) {
+    var r = req("fileWrite", { path: path, mode: MODE, writedata: text });
+    return !!(r && r.ret);
+  }
+
+  function load() {
+    var raw = read(PATH);
+    if (raw === null) return { raw: null, data: { AppInfo: [] } };
+    var data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.AppInfo)) throw new Error("format inattendu");
+    return { raw: raw, data: data };
+  }
+
+  function refresh() {
+    var cur = load();
+    var installed = cur.data.AppInfo.some(function (a) { return a.Id === ID; });
+    status.innerHTML =
+      "Liste des apps web : " + (cur.raw === null ? "<b>vide (pas encore de fichier)</b>"
+        : "<b class='ok'>lue, " + cur.data.AppInfo.length + " app(s)</b>") + "<br>" +
+      "Nuvio : " + (installed ? "<b class='ok'>installé</b>" : "<b>pas installé</b>") + "<br>" +
+      "<span class='dim'>Sauvegarde : " + (read(BACKUP) !== null ? "présente" : "aucune") + "</span>";
+    document.getElementById("install").style.display = installed ? "none" : "inline-block";
+    document.getElementById("remove").style.display = installed ? "inline-block" : "none";
+    document.getElementById("restore").style.display = read(BACKUP) !== null ? "inline-block" : "none";
+    (installed ? document.getElementById("remove") : document.getElementById("install")).focus();
+    return cur;
+  }
+
+  if (typeof req !== "function") {
+    status.innerHTML = "<b class='no'>HiUtils_createRequest absente : installation impossible.</b>";
+  } else {
+    try { refresh(); } catch (e) {
+      status.innerHTML = "<b class='no'>Lecture impossible (" + e.message + ") : je ne touche à rien.</b>";
+    }
+  }
+
+  document.getElementById("install").onclick = function () {
+    try {
+      var cur = load();
+      if (cur.raw !== null && read(BACKUP) === null && !write(BACKUP, cur.raw)) {
+        return say("<b class='no'>Sauvegarde impossible : installation annulée.</b>");
+      }
+      var icon = BASE + "icon.png";
+      cur.data.AppInfo.push({
+        Id: ID, AppName: "Nuvio", Title: "Nuvio", URL: BASE, StartCommand: BASE,
+        IconURL: icon, Icon_96: icon, Image: icon, Thumb: icon, Type: "Browser",
+        InstallTime: new Date().toISOString().split("T")[0], RunTimes: 0,
+        StoreType: "custom", PreInstall: false
+      });
+      if (!write(PATH, JSON.stringify(cur.data))) return say("<b class='no'>Écriture refusée par la TV.</b>");
+      refresh();
+      say("<b class='ok'>Nuvio installé. Redémarre la TV : il sera à la fin de la liste des apps.</b>");
+    } catch (e) { say("<b class='no'>Erreur : " + e.message + "</b>"); }
+  };
+
+  document.getElementById("remove").onclick = function () {
+    try {
+      var cur = load();
+      cur.data.AppInfo = cur.data.AppInfo.filter(function (a) { return a.Id !== ID; });
+      if (!write(PATH, JSON.stringify(cur.data))) return say("<b class='no'>Écriture refusée.</b>");
+      refresh();
+      say("<b class='ok'>Nuvio retiré. Redémarre la TV.</b>");
+    } catch (e) { say("<b class='no'>Erreur : " + e.message + "</b>"); }
+  };
+
+  document.getElementById("restore").onclick = function () {
+    var saved = read(BACKUP);
+    if (saved === null) return say("<b class='no'>Pas de sauvegarde.</b>");
+    if (!write(PATH, saved)) return say("<b class='no'>Restauration refusée.</b>");
+    refresh();
+    say("<b class='ok'>Liste d'origine restaurée. Redémarre la TV.</b>");
+  };
+</script>
+</body>
+</html>
