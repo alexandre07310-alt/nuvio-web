@@ -28,6 +28,8 @@
   var BACKUP = "websdk/Appinfo.nuvio-backup.json";
   var MODE = 6;
   var ID = "nuvioweb";
+  // Changer la version force la TV à recharger l'app au lieu d'utiliser son cache.
+  var APP_URL = BASE + "tv.html?v=6";
   var req = window.HiUtils_createRequest;
   var status = document.getElementById("status");
   var log = document.getElementById("log");
@@ -54,16 +56,21 @@
 
   function refresh() {
     var cur = load();
-    var installed = cur.data.AppInfo.some(function (a) { return a.Id === ID; });
+    var entry = cur.data.AppInfo.filter(function (a) { return a.Id === ID; })[0];
+    var installed = !!entry;
+    var outdated = installed && entry.URL !== APP_URL;
     status.innerHTML =
       "Liste des apps web : " + (cur.raw === null ? "<b>vide (pas encore de fichier)</b>"
         : "<b class='ok'>lue, " + cur.data.AppInfo.length + " app(s)</b>") + "<br>" +
-      "Nuvio : " + (installed ? "<b class='ok'>installé</b>" : "<b>pas installé</b>") + "<br>" +
+      "Nuvio : " + (!installed ? "<b>pas installé</b>" : outdated ? "<b class='no'>installé, ancienne adresse</b>"
+        : "<b class='ok'>installé, à jour</b>") + "<br>" +
       "<span class='dim'>Sauvegarde : " + (read(BACKUP) !== null ? "présente" : "aucune") + "</span>";
-    document.getElementById("install").style.display = installed ? "none" : "inline-block";
+    var btn = document.getElementById("install");
+    btn.textContent = outdated ? "Mettre à jour Nuvio" : "Installer Nuvio";
+    btn.style.display = !installed || outdated ? "inline-block" : "none";
     document.getElementById("remove").style.display = installed ? "inline-block" : "none";
     document.getElementById("restore").style.display = read(BACKUP) !== null ? "inline-block" : "none";
-    (installed ? document.getElementById("remove") : document.getElementById("install")).focus();
+    (btn.style.display !== "none" ? btn : document.getElementById("remove")).focus();
     return cur;
   }
 
@@ -82,8 +89,9 @@
         return say("<b class='no'>Sauvegarde impossible : installation annulée.</b>");
       }
       var icon = BASE + "icon.png";
+      cur.data.AppInfo = cur.data.AppInfo.filter(function (a) { return a.Id !== ID; });
       cur.data.AppInfo.push({
-        Id: ID, AppName: "Nuvio", Title: "Nuvio", URL: BASE, StartCommand: BASE,
+        Id: ID, AppName: "Nuvio", Title: "Nuvio", URL: APP_URL, StartCommand: APP_URL,
         IconURL: icon, Icon_96: icon, Image: icon, Thumb: icon, Type: "Browser",
         InstallTime: new Date().toISOString().split("T")[0], RunTimes: 0,
         StoreType: "custom", PreInstall: false
