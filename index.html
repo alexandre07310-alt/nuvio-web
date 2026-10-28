@@ -13,6 +13,16 @@
       window.__NUVIO_TIZEN_WRT_SERVICE__ = service;
     }
   </script>
+  <script>
+    // Ajout pour VIDAA : son navigateur ignore la balise viewport et affiche en ~1280x720.
+    // On réduit la page pour que la mise en page 1920x1080 tienne dans l'écran.
+    (function () {
+      if (window.tizen || window.webOS || window.PalmSystem) return;
+      var w = window.innerWidth || 1920, h = window.innerHeight || 1080;
+      var z = Math.min(w / 1920, h / 1080);
+      if (z < 0.95) document.documentElement.style.zoom = z;
+    })();
+  </script>
   <link rel="stylesheet" href="css/bundle.css" />
 </head>
 <body>
