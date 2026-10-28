@@ -21,21 +21,11 @@
       // VIDAA peut lui-même héberger l'app dans un cadre : on repère notre cadre via ?frame=1.
       if (window.tizen || window.webOS || window.PalmSystem || /[?&]frame=1/.test(location.search)) return;
       var w = window.innerWidth || 1920, h = window.innerHeight || 1080;
-      var z = Math.min(w / 1920, h / 1080);
-      if (z >= 0.95) return;
-      var src = "index.html" + (location.search ? location.search + "&" : "?") + "frame=1" + location.hash;
-      document.open();
-      document.write(
-        '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Nuvio TV</title><style>' +
-        'html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}' +
-        'iframe{position:absolute;top:0;left:0;width:1920px;height:1080px;border:0;' +
-        'transform:scale(' + z + ');-webkit-transform:scale(' + z + ');' +
-        'transform-origin:0 0;-webkit-transform-origin:0 0}' +
-        '</style></head><body><iframe id="nuvio" src="' + src + '" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>' +
-        '<script>var f=document.getElementById("nuvio");function k(){try{f.focus();f.contentWindow.focus();}catch(e){}}' +
-        'f.onload=k;window.onfocus=k;document.onkeydown=k;setInterval(function(){if(document.activeElement!==f)k();},1000);<\/script>' +
-        '</body></html>');
-      document.close();
+      if (Math.min(w / 1920, h / 1080) >= 0.95) return;
+      // Le vieux navigateur VIDAA continue de charger la page après document.write :
+      // on part donc vers une page dédiée qui ne contient que le cadre réduit.
+      window.stop && window.stop();
+      location.replace("tv.html" + location.search + location.hash);
     })();
   </script>
   <link rel="stylesheet" href="css/bundle.css" />

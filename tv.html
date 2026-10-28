@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Nuvio TV</title>
+<style>
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+  iframe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0;
+    -webkit-transform-origin: 0 0; transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<iframe id="nuvio" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+<script>
+  // Page cadre pour VIDAA : Nuvio tourne dans un viewport 1920x1080, réduit pour remplir l'écran.
+  var f = document.getElementById("nuvio");
+  var z = Math.min((window.innerWidth || 1920) / 1920, (window.innerHeight || 1080) / 1080);
+  f.style.webkitTransform = f.style.transform = "scale(" + z + ")";
+  f.src = "index.html" + (location.search ? location.search + "&" : "?") + "frame=1" + location.hash;
+  function keepFocus() { try { f.focus(); f.contentWindow.focus(); } catch (e) {} }
+  f.onload = keepFocus;
+  window.onfocus = keepFocus;
+  document.onkeydown = keepFocus;
+  setInterval(function () { if (document.activeElement !== f) keepFocus(); }, 1000);
+</script>
+</body>
+</html>
