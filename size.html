@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Taille écran</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #111; color: #fff; font: 44px/1.5 sans-serif; }
+  #frame { position: fixed; inset: 0; border: 8px solid #ffd400; box-sizing: border-box; }
+  #info { padding: 40px 60px; }
+</style>
+</head>
+<body>
+<div id="frame"></div>
+<div id="info"></div>
+<script>
+  // Affiche ce que voit le navigateur VIDAA, pour régler la mise à l'échelle de Nuvio.
+  document.getElementById("info").innerHTML =
+    "Fenêtre : <b>" + innerWidth + " × " + innerHeight + "</b><br>" +
+    "Écran : <b>" + screen.width + " × " + screen.height + "</b><br>" +
+    "Document : <b>" + document.documentElement.clientWidth + " × " + document.documentElement.clientHeight + "</b><br>" +
+    "Ratio pixels : <b>" + window.devicePixelRatio + "</b><br>" +
+    "<span style='font-size:26px;color:#aaa'>" + navigator.userAgent + "</span><br>" +
+    "<span style='font-size:30px'>Le cadre jaune doit faire le tour complet de l'écran.</span>";
+</script>
+</body>
+</html>
