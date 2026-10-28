@@ -18,7 +18,8 @@
     // Nuvio mélange px fixes et vw/vh, donc on le fait tourner dans un cadre de 1920x1080
     // (vrai viewport 1080p) que l'on réduit d'un bloc pour remplir l'écran.
     (function () {
-      if (window.tizen || window.webOS || window.PalmSystem || window.top !== window) return;
+      // VIDAA peut lui-même héberger l'app dans un cadre : on repère notre cadre via ?frame=1.
+      if (window.tizen || window.webOS || window.PalmSystem || /[?&]frame=1/.test(location.search)) return;
       var w = window.innerWidth || 1920, h = window.innerHeight || 1080;
       var z = Math.min(w / 1920, h / 1080);
       if (z >= 0.95) return;
