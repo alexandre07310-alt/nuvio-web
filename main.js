@@ -1,7 +1,9 @@
-window.__NUVIO_PLATFORM__ = "tizen";
-window.__NUVIO_TIZEN_ENGINEFS_SERVICE_ENABLED__ = true;
+// Ajout pour VIDAA : hors Samsung, Nuvio tourne en mode navigateur (lecteur HTML5 au lieu d'AVPlay).
+var isRealTizen = !!window.tizen;
+window.__NUVIO_PLATFORM__ = isRealTizen ? "tizen" : "browser";
+window.__NUVIO_TIZEN_ENGINEFS_SERVICE_ENABLED__ = isRealTizen;
 window.__NUVIO_TIZEN_ENGINEFS_SERVICE_ID__ = "NuvioTV001.EngineFsService";
-window.__NUVIO_TIZEN_PLUGIN_SERVICE_ENABLED__ = true;
+window.__NUVIO_TIZEN_PLUGIN_SERVICE_ENABLED__ = isRealTizen;
 window.__NUVIO_TIZEN_PLUGIN_SERVICE_ID__ = "NuvioTV001.PluginService";
 
 var tvInput = window.tizen && window.tizen.tvinputdevice;
@@ -46,7 +48,7 @@ function startNuvioApp() {
   loadScript("app.bundle.js");
 }
 
-if (window.NuvioBootGuard && typeof window.NuvioBootGuard.runCompatibilityGate === "function") {
+if (isRealTizen && window.NuvioBootGuard && typeof window.NuvioBootGuard.runCompatibilityGate === "function") {
   window.NuvioBootGuard.runCompatibilityGate({"platform":"tizen","minVersion":4,"minChrome":56,"requiredLabel":"Samsung Tizen 4.0+ · Chromium 56+ (2018+)"}, startNuvioApp);
 } else {
   startNuvioApp();
