@@ -14,13 +14,27 @@
     }
   </script>
   <script>
-    // Ajout pour VIDAA : son navigateur ignore la balise viewport et affiche en ~1280x720.
-    // On réduit la page pour que la mise en page 1920x1080 tienne dans l'écran.
+    // Ajout pour VIDAA : son navigateur ignore la balise viewport et affiche en 1280x720.
+    // Nuvio mélange px fixes et vw/vh, donc on le fait tourner dans un cadre de 1920x1080
+    // (vrai viewport 1080p) que l'on réduit d'un bloc pour remplir l'écran.
     (function () {
-      if (window.tizen || window.webOS || window.PalmSystem) return;
+      if (window.tizen || window.webOS || window.PalmSystem || window.top !== window) return;
       var w = window.innerWidth || 1920, h = window.innerHeight || 1080;
       var z = Math.min(w / 1920, h / 1080);
-      if (z < 0.95) document.documentElement.style.zoom = z;
+      if (z >= 0.95) return;
+      var src = "index.html" + (location.search ? location.search + "&" : "?") + "frame=1" + location.hash;
+      document.open();
+      document.write(
+        '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Nuvio TV</title><style>' +
+        'html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}' +
+        'iframe{position:absolute;top:0;left:0;width:1920px;height:1080px;border:0;' +
+        'transform:scale(' + z + ');-webkit-transform:scale(' + z + ');' +
+        'transform-origin:0 0;-webkit-transform-origin:0 0}' +
+        '</style></head><body><iframe id="nuvio" src="' + src + '" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>' +
+        '<script>var f=document.getElementById("nuvio");function k(){try{f.focus();f.contentWindow.focus();}catch(e){}}' +
+        'f.onload=k;window.onfocus=k;document.onkeydown=k;setInterval(function(){if(document.activeElement!==f)k();},1000);<\/script>' +
+        '</body></html>');
+      document.close();
     })();
   </script>
   <link rel="stylesheet" href="css/bundle.css" />
